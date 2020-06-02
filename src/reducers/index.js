@@ -9,6 +9,13 @@ const initialState = {
 
 const updateCartItems = (cartItems, item, idx) => {
     
+    if(item.count <= 0){
+        return [ 
+            ...cartItems.slice(0, idx),
+            ...cartItems.slice(idx + 1)
+        ];
+    }
+
     if (idx === -1) {
         return [
             ...cartItems,
@@ -21,13 +28,6 @@ const updateCartItems = (cartItems, item, idx) => {
         ...cartItems.slice(idx + 1)
     ];
 };
-
-const deleteCartItem = (cartItems, idx) => {
-    return [ 
-        ...cartItems.slice(0, idx),
-        ...cartItems.slice(idx + 1)
-    ];
-}
 
 const updateCartItem = (book, item = {}, quantity=1) => {
     
@@ -54,11 +54,6 @@ const updateOrder = (state, bookId, quantity) => {
 
     const newItem = updateCartItem(book, item, quantity);
 
-    if(newItem.count <= 0){
-        return{
-            ...state,
-            cartItems: deleteCartItem(cartItems, itemIndex)}
-    }
     return {
         ...state,
         cartItems: updateCartItems(state.cartItems, newItem, itemIndex)
@@ -97,13 +92,8 @@ const reducer = (state = initialState, action) => {
         case 'BOOK_REMOVED_FROM_CART':
             return updateOrder(state, action.payload, -1);
         case 'ALL_BOOKS_REMOVED_FROM_CART':
-            const toDelId = action.payload;
-            const toDelIndex = state.cartItems.findIndex( ({id}) => id === toDelId);
-
-            return{
-                ...state,
-                cartItems: deleteCartItem(state.cartItems, toDelIndex)
-            }
+            const toDelItem = state.cartItems.find( ({id}) => id === action.payload);
+            return updateOrder(state, action.payload, -toDelItem.count);
         default:
             return state;  
     } 
